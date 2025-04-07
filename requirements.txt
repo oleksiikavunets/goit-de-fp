@@ -1,0 +1,8 @@
+kafka-python
+environs
+pyspark
+requests
+pandas
+pyarrow
+grpcio
+google
