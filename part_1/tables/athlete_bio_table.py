@@ -22,11 +22,11 @@ class AthletesBioTable(Table):
     )
 
     def filter(self):
+
+
         self.df = self.df.filter(
             col("height").isNotNull() &
-            col("weight").isNotNull() &
-            col("height").rlike("^[0-9]+$") &
-            col("weight").rlike("^[0-9]+$")
+            col("weight").isNotNull()
         )
 
         return self

@@ -1,9 +1,9 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, from_json
+from pyspark.sql.types import StructType
 
 
 class Table:
-    schema: str
+    schema: StructType
     name: str
     df: DataFrame
 
@@ -11,14 +11,7 @@ class Table:
         self.df = df
 
     def read(self, client):
-        self.df = client.read(self.name)
-
-        if "value" in self.df.columns:
-            self.df = self.df.select(
-                from_json(col("value").cast("string"), self.schema).alias("data"), col("timestamp")
-            ).select("data.*")
-
-            self.df.show()
+        self.df = client.read(self.name, self.schema)
 
         return self
 
@@ -46,25 +39,11 @@ class Table:
         return self
 
     def join(self, other, on, how='inner'):
-        d1 = set(self.df.toPandas()['athlete_id'])
-        d2 = set(other.df.toPandas()['athlete_id'])
-
-        print(d1 & d2)
         joined_df = self.df.join(other.df, on=on, how=how)
 
-        joined_df.show()
+        dupl_cols = set(self.df.columns) & set(other.df.columns)
 
-        seen = set()
-        unique_cols = []
-
-        [
-            (unique_cols.append(col_name),
-             seen.add(col_name))
-            for col_name in joined_df.columns if col_name not in seen
-        ]
-
-        joined_df = joined_df.select(*unique_cols)
-
-        joined_df.show()
+        for col in dupl_cols:
+            joined_df = joined_df.drop(other.df[col])
 
         return joined_df

@@ -1,23 +1,28 @@
-import os
 import uuid
 
 from environs import env
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import lit, struct, to_json
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, from_json, lit, struct, to_json
+from pyspark.sql.types import StructType
+
+from part_1.clients.spark_builder import spark_session
 
 env.read_env()
 
-os.environ['PYSPARK_SUBMIT_ARGS'] = ('--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.5.1,'
-                                     'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 pyspark-shell')
+
+# os.environ['PYSPARK_SUBMIT_ARGS'] = ('--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.5.1,'
+#                                      'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 pyspark-shell')
 
 
 class KafkaClient:
     def __init__(self):
-        self._bootstrap_servers = env.list('bootstrap_servers')
-        self._kafka_security_protocol = env('kafka_security_protocol')
-        self._sasl_mechanism = env('sasl_mechanism')
-        self._user = env("kafka_user")
-        self._pass = env("kafka_pass")
+        self._config = {
+            'kafka.bootstrap.servers': env.list('BOOTSTRAP_SERVERS')[0],
+            'kafka.security.protocol': env('KAFKA_SECURITY_PROTOCOL'),
+            'kafka.sasl.mechanism': env('SASL_MECHANISM'),
+            'kafka.sasl.jaas.config': f'org.apache.kafka.common.security.plain.PlainLoginModule required '
+                                      f'username="{env("KAFKA_USER")}" password="{env("KAFKA_PASS")}";'
+        }
 
     def write(self, topic: str, df: DataFrame):
         prepared_df = (
@@ -28,35 +33,23 @@ class KafkaClient:
         (
             prepared_df.write
             .format("kafka")
-            .option("kafka.bootstrap.servers", self._bootstrap_servers[0])
-            .option("topic", topic)
-            .option("kafka.security.protocol", self._kafka_security_protocol)
-            .option("kafka.sasl.mechanism", self._sasl_mechanism)
-            .option("kafka.sasl.jaas.config",
-                    f'org.apache.kafka.common.security.plain.PlainLoginModule required username="{self._user}" password="{self._pass}";')
-            .option("checkpointLocation", "/tmp/checkpoint-1")
+            .options(topic=topic, **self._config)
+            .option("checkpointLocation", "/tmp/checkpoint-2")
             .save()
         )
 
-    def read(self, topic) -> DataFrame:
-        spark = (SparkSession.builder
-                 .appName("KafkaStreaming")
-                 .master("local[*]")
-                 .getOrCreate())
-
+    def read(self, topic, schema: StructType = None) -> DataFrame:
         df = (
-            spark
-            .read
+            spark_session()
+            .readStream
             .format("kafka")
-            .option("kafka.bootstrap.servers", self._bootstrap_servers[0])
-            .option("kafka.security.protocol", self._kafka_security_protocol)
-            .option("kafka.sasl.mechanism", self._sasl_mechanism)
-            .option("kafka.sasl.jaas.config",
-                    f'org.apache.kafka.common.security.plain.PlainLoginModule required username="{self._user}" password="{self._pass}";')
-            .option("subscribe", topic)
+            .options(subscribe=topic, **self._config)
             .load()
         )
 
-        df.show()
+        if schema:
+            df = df.select(
+                from_json(col("value").cast("string"), schema).alias("data"), col("timestamp")
+            ).select("data.*")
 
         return df
