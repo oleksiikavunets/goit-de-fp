@@ -1,16 +1,16 @@
-from part_1.clients.db_client import DbClient
-from part_1.clients.kafka_admin_client import KafkaAdmin
+from src.dataframe_io.db import Db
+from src.clients.kafka_admin_client import KafkaAdmin
 
-from part_1.clients.kafka_client import KafkaClient
-from part_1.clients.kafka_consumer_client import KafkaConsumerClient
-from part_1.tables.athlete_bio_table import AthletesBioTable
-from part_1.tables.athlete_event_results_table import AthleteEventResultsTable
-from part_1.tables.result_table import ResultTable
+from src.dataframe_io.kafka import Kafka
+from src.clients.kafka_consumer_client import KafkaConsumerClient
+from src.tables.athlete_bio_table import AthletesBioTable
+from src.tables.athlete_event_results_table import AthleteEventResultsTable
+from src.tables.result_table import AggResultTable
 
 KafkaAdmin().create_topics('oleksii_k_agg_athlete_event_results').close()
 
-db_client = DbClient()
-kafka_client = KafkaClient()
+db_client = Db()
+kafka_client = Kafka()
 
 # 1. Зчитати дані фізичних показників атлетів за допомогою Spark з MySQL таблиці olympic_dataset.athlete_bio
 # 2. Відфільтрувати дані, де показники зросту та ваги є порожніми або не є числами.
@@ -31,7 +31,7 @@ joined = athletes_bio.join(kfk_athlete_event_results, on='athlete_id')
 # 6. Зробіть стрим даних (за допомогою функції forEachBatch) у:
 #    а) вихідний Kafka-топік,
 #    b) базу даних.
-ResultTable(joined) \
+AggResultTable(joined) \
     .aggregate() \
     .write_stream(db_client, kafka_client)
 

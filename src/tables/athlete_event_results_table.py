@@ -1,10 +1,10 @@
-from pyspark.sql.types import IntegerType, LongType, StringType, StructField, StructType, BooleanType
+from pyspark.sql.types import IntegerType, LongType, StringType, StructField, StructType
 
-from part_1.tables.table import Table
+from src.tables.table import Table
 
 
 class AthleteEventResultsTable(Table):
-    name = 'athlete_event_results'
+    _default_io = 'athlete_event_results'
     schema = StructType(
         [
             StructField('edition', StringType(), True),

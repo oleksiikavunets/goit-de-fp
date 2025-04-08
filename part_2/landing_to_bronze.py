@@ -1,21 +1,21 @@
-import requests
+from src.dataframe_io.fs import Fs
+from src.dataframe_io.ftp import Ftp
+from src.tables.athlete_bio_table import AthletesBioTable
+from src.tables.athlete_event_results_table import AthleteEventResultsTable
 
-from environs import env
+ftp = Ftp()
+fs = Fs()
 
-env.read_env()
+# 1. Написати файл landing_to_bronze.py. Він має:
+# - завантажувати файл з ftp-сервера в оригінальному форматі csv,
+# - за допомогою Spark прочитати csv-файл і зберегти його у форматі parquet у папку bronze/{table}, де {table} — ім’я таблиці.
 
+AthletesBioTable(output_path='bronze/athletes_bio') \
+    .read(ftp) \
+    .write(fs) \
+    .df.show()
 
-def download_data(local_file_path):
-    url = env("ftp_server_url")
-    downloading_url = url + local_file_path + ".csv"
-    print(f"Downloading from {downloading_url}")
-    response = requests.get(downloading_url)
-
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
-        # Open the local file in write-binary mode and write the content of the response to it
-        with open(local_file_path + ".csv", 'wb') as file:
-            file.write(response.content)
-        print(f"File downloaded successfully and saved as {local_file_path}")
-    else:
-        exit(f"Failed to download the file. Status code: {response.status_code}")
+AthleteEventResultsTable(output_path='bronze/athlete_event_results') \
+    .read(ftp) \
+    .write(fs) \
+    .df.show()

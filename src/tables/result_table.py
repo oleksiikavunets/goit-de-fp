@@ -1,10 +1,10 @@
 from pyspark.sql.functions import avg, current_timestamp
 
-from part_1.tables.table import Table
+from src.tables.table import Table
 
 
-class ResultTable(Table):
-    name = 'oleksii_k_agg_athlete_event_results'
+class AggResultTable(Table):
+    _default_io = 'oleksii_k_agg_athlete_event_results'
 
     def aggregate(self):
         self.df = (

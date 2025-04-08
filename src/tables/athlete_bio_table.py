@@ -1,11 +1,11 @@
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType, StringType, StructField, StructType, BooleanType, DoubleType
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType, DoubleType
 
-from part_1.tables.table import Table
+from src.tables.table import Table
 
 
 class AthletesBioTable(Table):
-    name = 'athlete_bio'
+    _default_io = 'athlete_bio'
     schema = StructType(
         [
             StructField('athlete_id', IntegerType(), True),
