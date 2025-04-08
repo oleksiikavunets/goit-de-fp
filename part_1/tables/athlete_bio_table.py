@@ -22,8 +22,6 @@ class AthletesBioTable(Table):
     )
 
     def filter(self):
-
-
         self.df = self.df.filter(
             col("height").isNotNull() &
             col("weight").isNotNull()

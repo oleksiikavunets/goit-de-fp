@@ -39,7 +39,7 @@ class Table:
         ...
         return self
 
-    def join(self, other, on, how='inner'):
+    def join(self, other, on, how='inner') -> DataFrame:
         joined_df = self.df.join(other.df, on=on, how=how)
 
         dupl_cols = set(self.df.columns) & set(other.df.columns)
