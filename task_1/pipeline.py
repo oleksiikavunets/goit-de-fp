@@ -9,20 +9,20 @@ from src.tables.result_table import AggResultTable
 
 KafkaAdmin().create_topics('oleksii_k_agg_athlete_event_results').close()
 
-db_client = Db()
-kafka_client = Kafka()
+db = Db()
+kafka = Kafka()
 
 # 1. Зчитати дані фізичних показників атлетів за допомогою Spark з MySQL таблиці olympic_dataset.athlete_bio
 # 2. Відфільтрувати дані, де показники зросту та ваги є порожніми або не є числами.
-athletes_bio = AthletesBioTable().read(db_client).filter()
+athletes_bio = AthletesBioTable().read(db).filter()
 
 # 3. Зчитати дані з mysql таблиці athlete_event_results і записати в Kafka-топік athlete_event_results.
 AthleteEventResultsTable() \
-    .read(db_client) \
-    .write(kafka_client)
+    .read(db) \
+    .write(kafka)
 
 # 3.1. Зчитати дані з результатами змагань з Kafka-топіку athlete_event_results.
-kfk_athlete_event_results = AthleteEventResultsTable().read(kafka_client)
+kfk_athlete_event_results = AthleteEventResultsTable().read(kafka)
 
 # 4. Об’єднати дані з результатами змагань з Kafka-топіку з біологічними даними з MySQL таблиці за допомогою ключа athlete_id.
 joined = athletes_bio.join(kfk_athlete_event_results, on='athlete_id')
@@ -33,6 +33,6 @@ joined = athletes_bio.join(kfk_athlete_event_results, on='athlete_id')
 #    b) базу даних.
 AggResultTable(joined) \
     .aggregate() \
-    .write_stream(db_client, kafka_client)
+    .write_stream(db, kafka)
 
 KafkaConsumerClient().read('oleksii_k_agg_athlete_event_results')
