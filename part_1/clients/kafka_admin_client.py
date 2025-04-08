@@ -26,7 +26,8 @@ class KafkaAdmin:
             print(f"Created new topics successfully successfully.")
         except Exception as e:
             print(f"An error occurred: {e}\n\n\n")
-
+        created_topics = [t for t in self._client.list_topics() if 'athlete_event_results' in t]
+        print(created_topics)
         return self
 
     def close(self):

@@ -4,7 +4,7 @@ from part_1.tables.table import Table
 
 
 class ResultTable(Table):
-    name = 'oleksii_k_athlete_agg_results'
+    name = 'oleksii_k_agg_athlete_event_results'
 
     def aggregate(self):
         self.df = (

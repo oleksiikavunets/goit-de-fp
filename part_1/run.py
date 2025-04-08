@@ -7,7 +7,7 @@ from part_1.tables.athlete_bio_table import AthletesBioTable
 from part_1.tables.athlete_event_results_table import AthleteEventResultsTable
 from part_1.tables.result_table import ResultTable
 
-KafkaAdmin().create_topics('oleksii_k_athlete_agg_results').close()
+KafkaAdmin().create_topics('oleksii_k_agg_athlete_event_results').close()
 
 db_client = DbClient()
 kafka_client = KafkaClient()
@@ -33,6 +33,6 @@ joined = athletes_bio.join(kfk_athlete_event_results, on='athlete_id')
 #    b) базу даних.
 ResultTable(joined) \
     .aggregate() \
-    .write_stream(kafka_client, db_client)
+    .write_stream(db_client, kafka_client)
 
-KafkaConsumerClient().read('oleksii_k_athlete_agg_results')
+KafkaConsumerClient().read('oleksii_k_agg_athlete_event_results')

@@ -28,7 +28,8 @@ class Table:
         (self.df
          .writeStream
          .foreachBatch(foreach_batch_function)
-         .outputMode("update")
+         .option('checkpointLocation', '/tmp/checkpoint-tbl-w')
+         .outputMode("complete")
          .start()
          .awaitTermination())
 

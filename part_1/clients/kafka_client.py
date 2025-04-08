@@ -10,9 +10,6 @@ from part_1.clients.spark_builder import spark_session
 env.read_env()
 
 
-# os.environ['PYSPARK_SUBMIT_ARGS'] = ('--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.5.1,'
-#                                      'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 pyspark-shell')
-
 
 class KafkaClient:
     def __init__(self):
@@ -33,8 +30,7 @@ class KafkaClient:
         (
             prepared_df.write
             .format("kafka")
-            .options(topic=topic, **self._config)
-            .option("checkpointLocation", "/tmp/checkpoint-2")
+            .options(topic=topic, checkpointLocation='/tmp/checkpoint-kfk-w', **self._config)
             .save()
         )
 
@@ -43,13 +39,19 @@ class KafkaClient:
             spark_session()
             .readStream
             .format("kafka")
-            .options(subscribe=topic, **self._config)
+            .options(
+                subscribe=topic,
+                startingOffsets='latest',
+                checkpointLocation='/tmp/checkpoint-kfk-r',
+                **self._config
+            )
             .load()
         )
 
         if schema:
             df = df.select(
-                from_json(col("value").cast("string"), schema).alias("data"), col("timestamp")
+                from_json(col("value").cast("string"), schema).alias("data"),
+                col("timestamp")
             ).select("data.*")
 
         return df
