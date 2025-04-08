@@ -5,6 +5,7 @@ from kafka import KafkaConsumer
 
 env.read_env()
 
+
 class KafkaConsumerClient:
     def __init__(self):
         self._consumer = KafkaConsumer(
@@ -26,8 +27,7 @@ class KafkaConsumerClient:
         print(f"Subscribed to topics {topics}")
 
         try:
-            for message in self._consumer:
-                print(f"Received alert:\n{message.value}\n")
+            [print(message.value) for message in self._consumer]
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
