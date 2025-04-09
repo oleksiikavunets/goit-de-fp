@@ -22,7 +22,7 @@ AthleteEventResultsTable() \
     .write(kafka)
 
 # 3.1. Зчитати дані з результатами змагань з Kafka-топіку athlete_event_results.
-kfk_athlete_event_results = AthleteEventResultsTable().read(kafka)
+kfk_athlete_event_results = AthleteEventResultsTable().read_stream(kafka)
 
 # 4. Об’єднати дані з результатами змагань з Kafka-топіку з біологічними даними з MySQL таблиці за допомогою ключа athlete_id.
 joined = athletes_bio.join(kfk_athlete_event_results, on='athlete_id')

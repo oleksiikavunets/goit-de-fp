@@ -7,6 +7,7 @@ from pyspark.sql.functions import col, udf
 from pyspark.sql.types import StringType, StructType
 
 from src.dataframe_io.dataframe_io import DataFrameIO
+from src.dataframe_io.dataframe_streaming_io import DataFrameStreamingIO
 
 
 class Table:
@@ -26,6 +27,11 @@ class Table:
 
     def read(self, reader: DataFrameIO) -> Self:
         self.df = reader.read(self._input, self.schema)
+
+        return self
+
+    def read_stream(self,  reader: DataFrameStreamingIO) -> Self:
+        self.df = reader.read_stream(self._input, self.schema)
 
         return self
 
